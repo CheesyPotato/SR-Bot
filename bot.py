@@ -6,7 +6,7 @@ import requests
 f = open('token.txt')
 token = f.read()
 f.close()
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='::')
 
 async def checkloop():
     while True:
@@ -27,8 +27,8 @@ async def checkloop():
                 oldnick = bot.get_server(i[2]).get_member(i[0]).name.split(' SR: ', 1)[0]
             else:
                 oldnick = bot.get_server(i[2]).get_member(i[0]).nick.split(' SR: ', 1)[0]
-
-            await bot.change_nickname(bot.get_server(i[2]).get_member(i[0]), oldnick + ' SR: ' + str(r.json()['competitive']['rank']))
+            if bot.get_server(i[2]).get_member(bot.user.id).server_permissions.manage_nicknames:
+                await bot.change_nickname(bot.get_server(i[2]).get_member(i[0]), oldnick + ' SR: ' + str(r.json()['competitive']['rank']))
         await asyncio.sleep(5)
 @bot.event
 async def on_ready():
@@ -36,12 +36,14 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
+    await bot.change_presence(game=discord.Game(name='::help'))
     bot.loop.create_task(checkloop())
 
 @bot.command(pass_context=True)
 async def start(ctx, user=None):
+
     if user == None:
-        await bot.say('Error: put your battlenet after !start')
+        await bot.say('Error: put your battletag after ::start')
         return
     if ctx.message.author.id == ctx.message.server.owner.id:
         await bot.say("Sorry, the bot can't change the owner's nickname :sob:")
@@ -88,7 +90,7 @@ async def remove(ctx):
             f.close()
             await bot.say('Removed!')
             return
-    await bot.say("You haven't registered yet in this server (!start)")
+    await bot.say("You haven't registered yet in this server (::start <battletag>)")
 
 bot.run(token)
 #await bot.say('Error: not enough permissions (can the bot manage nicknames? is the member higher than the bot?)')
